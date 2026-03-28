@@ -3,67 +3,83 @@ package part7.part7_3;
 import java.util.*;
 import java.util.function.Function;
 
-/**
- * Задание 7.3 — Композиция функций и локальный класс
- *
- * Тема: Function<T, R>, композиция через andThen(), локальные классы.
- *
- * Ключевая теория:
- *   - Function<T, R> — функциональный интерфейс: принимает T, возвращает R.
- *   - f.andThen(g) = сначала f, потом g (f → g).
- *   - f.compose(g) = сначала g, потом f (g → f).
- *   - Локальный класс — класс, объявленный внутри метода. Виден только в этом методе.
- *
- * Как запустить: нажмите ▶ рядом с main.
- */
 public class TextPipeline {
 
     public static void main(String[] args) {
+        // ========== ЧАСТЬ А: Композиция функций ==========
+        Function<String, String> trim = String::trim;
+        Function<String, String> lower = String::toLowerCase;
+        Function<String, String> removeExtraSpaces = s -> s.replaceAll("\\s+", " ");
+        Function<String, String> capitalize = s -> s.isEmpty() ? s :
+                s.substring(0, 1).toUpperCase() + s.substring(1);
 
-        // === Часть A: Композиция функций ===
-        // ▼ ВАШ КОД ЗДЕСЬ (Часть A) ▼
+        // Композиция через andThen
+        Function<String, String> normalize = trim
+                .andThen(lower)
+                .andThen(removeExtraSpaces)
+                .andThen(capitalize);
 
-        // TODO: создайте 4 функции Function<String, String>:
-        //   Function<String, String> trim = String::trim;
-        //   Function<String, String> lower = String::toLowerCase;
-        //   Function<String, String> removeExtraSpaces = s -> s.replaceAll("\\s+", " ");
-        //   Function<String, String> capitalize = s -> s.isEmpty() ? s : Character.toUpperCase(s.charAt(0)) + s.substring(1);
+        // Тестовые строки
+        List<String> testStrings = Arrays.asList(
+                "  привет   мир   ",
+                "  JAVA   программирование   это   интересно  ",
+                "   hello   world   from   java   ",
+                "  функциональное   программирование   "
+        );
 
-        // TODO: скомпонуйте в одну функцию:
-        //   var normalize = trim.andThen(lower).andThen(removeExtraSpaces).andThen(capitalize);
+        System.out.println("=== НОРМАЛИЗАЦИЯ СТРОК ===");
+        for (String s : testStrings) {
+            System.out.println("Исходная: \"" + s + "\"");
+            System.out.println("Результат: \"" + normalize.apply(s) + "\"");
+            System.out.println();
+        }
 
-        // TODO: примените к нескольким строкам:
-        String[] testStrings = {
-            "  пРИВЕТ    МИР  ",
-            "   jAVA   пРОГРАММИРОВАНИЕ   ",
-            "ТЕСТ"
-        };
-        // for (String s : testStrings) System.out.println("\"" + s + "\" → \"" + normalize.apply(s) + "\"");
+        // ========== ЧАСТЬ В: Локальный класс WordCounter ==========
+        class WordCounter {
+            private final String text;
 
-        // ▲ КОНЕЦ ВАШЕГО КОДА (Часть A) ▲
+            WordCounter(String text) {
+                this.text = text;
+            }
 
-        // === Часть B: Локальный класс ===
-        // ▼ ВАШ КОД ЗДЕСЬ (Часть B) ▼
+            Map<String, Integer> getWordFrequency() {
+                Map<String, Integer> freq = new HashMap<>();
+                if (text == null || text.isBlank()) {
+                    return freq;
+                }
+                String[] words = text.split("\\s+");
+                for (String word : words) {
+                    freq.put(word, freq.getOrDefault(word, 0) + 1);
+                }
+                return freq;
+            }
 
-        // TODO: объявите локальный класс WordCounter прямо здесь, внутри main:
-        //
-        // class WordCounter {
-        //     private final String text;
-        //     WordCounter(String text) { this.text = text; }
-        //
-        //     Map<String, Integer> count() {
-        //         // Подсказка: split(" "), создайте Map, в цикле map.merge(word, 1, Integer::sum)
-        //     }
-        //
-        //     String mostFrequent() {
-        //         // Подсказка: count().entrySet().stream().max(Map.Entry.comparingByValue())
-        //     }
-        // }
+            String mostFrequent() {
+                Map<String, Integer> freq = getWordFrequency();
+                if (freq.isEmpty()) {
+                    return "";
+                }
+                return freq.entrySet().stream()
+                        .max(Map.Entry.comparingByValue())
+                        .map(Map.Entry::getKey)
+                        .orElse("");
+            }
+        }
 
-        // TODO: используйте WordCounter для анализа нормализованной строки:
-        // var wc = new WordCounter(normalize.apply("  java java PYTHON  java python  "));
-        // System.out.println("Частоты: " + wc.count());
-        // System.out.println("Самое частое: " + wc.mostFrequent());
-        // ▲ КОНЕЦ ВАШЕГО КОДА (Часть B) ▲
+        // Анализ нормализованного текста
+        System.out.println("=== АНАЛИЗ ТЕКСТА ===");
+        String sampleText = "  java   программирование   java   это   интересно   java   ";
+        String normalized = normalize.apply(sampleText);
+
+        System.out.println("Исходный текст: \"" + sampleText + "\"");
+        System.out.println("Нормализованный: \"" + normalized + "\"");
+
+        WordCounter counter = new WordCounter(normalized);
+        Map<String, Integer> frequency = counter.getWordFrequency();
+
+        System.out.println("\nЧастота слов:");
+        frequency.forEach((word, count) -> System.out.println("  " + word + ": " + count));
+
+        System.out.println("\nСамое частое слово: \"" + counter.mostFrequent() + "\"");
     }
 }
