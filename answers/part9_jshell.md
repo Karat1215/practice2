@@ -25,12 +25,19 @@ s instanceof Circle c ? "Круг r=" + c.r() : "Не круг"
 ### Фактический вывод:
 
 ```
-(впишите результат выполнения каждой команды)
+sealed interface Shape permits Circle, Square {}
+record Circle(double r) implements Shape {}
+record Square(double side) implements Shape {}
+Shape s = new Circle(5)
+s instanceof Circle c ? "Круг r=" + c.r() : "Не круг"
+$4 ==> "Круг r=5.0"
 ```
 
 ### Вопрос: Что произойдёт при попытке создать `record Triangle(double a) implements Shape {}`?
 
 **Ваш ответ:**
+Будет ошибка компиляции, так как Triangle не указан в permits clause интерфейса Shape. Sealed-интерфейс разрешает наследование только тем классам/record, которые перечислены в permits.
+
 
 
 
@@ -54,13 +61,16 @@ pipeline2.apply("  hello world  ")
 ### Фактический вывод:
 
 ```
-(впишите результат)
+pipeline1.apply("  hello world  ")
+$7 ==> "HELLO WORLD!"
+pipeline2.apply("  hello world  ")
+$8 ==> "HELLO WORLD!"
 ```
 
 ### Вопрос: Дают ли `andThen()` и `compose()` одинаковый результат? В каком случае результаты будут различаться?
 
 **Ваш ответ:**
-
+В данном примере результаты одинаковые, потому что порядок применения функций совпадает: trim → upper → exclaim. andThen() применяет функции слева направо, compose() — справа налево. Результаты различатся, если изменить порядок функций (например, exclaim.andThen(upper) даст "HELLO WORLD!!", а не "HELLO WORLD!").
 
 
 ---
@@ -82,10 +92,18 @@ hashSet.getClass().getSimpleName()
 ### Фактический вывод:
 
 ```
-(впишите результат)
+enumSet.contains(Color.RED)
+$4 ==> true
+hashSet.contains(Color.RED)
+$5 ==> true
+enumSet.getClass().getSimpleName()
+$6 ==> "RegularEnumSet"
+hashSet.getClass().getSimpleName()
+$7 ==> "HashSet"
 ```
 
 ### Вопрос: Почему внутренний класс EnumSet называется `RegularEnumSet`? Что произойдёт, если enum будет иметь больше 64 констант?
 
 **Ваш ответ:**
+RegularEnumSet используется для enum с не более чем 64 константами (64 бита = long). Для enum с более чем 64 константами используется JumboEnumSet, который использует long[] для хранения битовых масок. Это оптимизация памяти и производительности.
 
